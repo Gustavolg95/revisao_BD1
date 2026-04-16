@@ -1,1 +1,1 @@
-# Site com flashcards para ajudar a revisar Banco de Dados I
+# Site com flashcards para ajudar nos estudos sobre Banco de Dados I
