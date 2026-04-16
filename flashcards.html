@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flashcards - Banco de Dados I</title>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Sans:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>FLASHCARDS BD I</h1>
+            <p>Banco de Dados I - 50 Questões</p>
+        </div>
+
+        <div class="controls">
+            <button class="btn active" onclick="filterByBlock('all', event)">Todas</button>
+            <button class="btn" onclick="filterByBlock('fundamentos', event)">Fundamentos</button>
+            <button class="btn" onclick="filterByBlock('sgbd', event)">SGBD</button>
+            <button class="btn" onclick="filterByBlock('caracteristicas', event)">Características</button>
+            <button class="btn" onclick="filterByBlock('arquitetura', event)">Arquitetura</button>
+            <button class="btn" onclick="filterByBlock('sql', event)">SQL</button>
+            <button class="btn" onclick="filterByBlock('mer', event)">MER</button>
+            <button class="btn" onclick="shuffleCards()">🔀 Embaralhar</button>
+        </div>
+
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+
+        <div class="stats">
+            <div class="stat-card">
+                <span class="stat-number" id="currentCard">1</span>
+                <span class="stat-label">Questão Atual</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-number" id="totalCards">54</span>
+                <span class="stat-label">Total</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-number" id="knownCards">0</span>
+                <span class="stat-label">Sei ✓</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-number" id="unknownCards">0</span>
+                <span class="stat-label">Revisar</span>
+            </div>
+        </div>
+
+        <div class="card-container" id="cardContainer">
+            <div class="flashcard" id="flashcard" onclick="flipCard()">
+                <div class="card-face card-front">
+                    <span class="card-number" id="cardNumber">1</span>
+                    <span class="card-category" id="cardCategory">Fundamentos</span>
+                    <div class="question" id="question"></div>
+                    <div class="hint">👆 Clique para revelar a resposta</div>
+                </div>
+                <div class="card-face card-back">
+                    <span class="card-number" id="cardNumberBack">1</span>
+                    <span class="card-category" id="cardCategoryBack">Fundamentos</span>
+                    <div class="answer" id="answer"></div>
+                    <div class="hint">👆 Clique para voltar</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="action-buttons">
+            <button class="action-btn dunno" onclick="markAsUnknown()">❌ Preciso Revisar</button>
+            <button class="action-btn know" onclick="markAsKnown()">✅ Eu Sei!</button>
+        </div>
+
+        <div class="navigation">
+            <button class="nav-btn" id="prevBtn" onclick="prevCard()">◄ Anterior</button>
+            <button class="nav-btn" id="nextBtn" onclick="nextCard()">Próxima ►</button>
+        </div>
+
+        <div class="completion-screen" id="completionScreen">
+            <h2>🎉 Parabéns!</h2>
+            <p style="font-size: 1.3rem; color: var(--text-secondary); margin-bottom: 30px;">
+                Você completou todas as questões!
+            </p>
+            <div class="completion-stats">
+                <div class="completion-stat">
+                    <span class="stat-number" id="finalKnown">0</span>
+                    <span class="stat-label">Questões Dominadas</span>
+                </div>
+                <div class="completion-stat">
+                    <span class="stat-number" id="finalUnknown">0</span>
+                    <span class="stat-label">Para Revisar</span>
+                </div>
+                <div class="completion-stat">
+                    <span class="stat-number" id="finalPercentage">0%</span>
+                    <span class="stat-label">Taxa de Acerto</span>
+                </div>
+            </div>
+            <button class="nav-btn" onclick="resetStudy()">🔄 Recomeçar</button>
+            <button class="nav-btn" onclick="reviewUnknown()" style="margin-left: 15px; background: linear-gradient(135deg, var(--accent-secondary), var(--accent-tertiary));">📚 Revisar Erros</button>
+        </div>
+    </div>
+
+    <script>
+        const flashcards = [
+            // BLOCO 1: Fundamentos Básicos
+            {
+                question: "O que é Banco de dados?",
+                answer: "É uma <strong>coleção de informações organizadas e armazenadas</strong> em um computador.",
+                category: "fundamentos",
+                block: "Fundamentos"
+            },
+            {
+                question: "O que é dado?",
+                answer: "É um <strong>fato bruto, isolado, sem contexto e significado</strong>. Uma sequência de valores elementares quantificados ou quantificáveis sem ideia completa.<br><br>📌 Exemplo: '25°C'",
+                category: "fundamentos",
+                block: "Fundamentos"
+            },
+            {
+                question: "O que é Informação?",
+                answer: "É o <strong>dado processado, contextualizado e interpretado</strong>, possuindo significado e relevância. É o resultado da análise e organização dos dados.<br><br>📌 Exemplo: 'Temperatura em Brasília hoje é 25°C'",
+                category: "fundamentos",
+                block: "Fundamentos"
+            },
+            {
+                question: "O que é Dado Persistente?",
+                answer: "São dados de um Banco de Dados que <strong>ficam por muito tempo armazenados</strong> no banco de dados.<br><br>📌 Exemplos: dados sobre produtos, contabilidade, pacientes e estudantes.",
+                category: "fundamentos",
+                block: "Fundamentos"
+            },
+            {
+                question: "O que é conhecimento?",
+                answer: "O conhecimento é um <strong>conjunto de informações que permite a tomada de decisões e resolução de problemas</strong>.<br><br>📌 Exemplo: 'Está 25°C, vou de bermuda!'",
+                category: "fundamentos",
+                block: "Fundamentos"
+            },
+            {
+                question: "O que é Modelo de Dados?",
+                answer: "É uma <strong>representação abstrata da estrutura de dados</strong> de um sistema.",
+                category: "fundamentos",
+                block: "Fundamentos"
+            },
+            {
+                question: "O que é Sistema de Informação?",
+                answer: "É um sistema automatizado ou manual que envolve <strong>pessoas, máquinas e métodos</strong> para organizar, coletar, processar e distribuir dados para os usuários.",
+                category: "fundamentos",
+                block: "Fundamentos"
+            },
+
+            // BLOCO 2: SGBD e Funções
+            {
+                question: "O que é SGBD?",
+                answer: "<strong>Sistema Gerenciador de Banco de Dados</strong>, é o software responsável pelo gerenciamento dos dados no Banco de Dados.<br><br>📌 Exemplos: MySQL, PostgreSQL, SQLite",
+                category: "sgbd",
+                block: "SGBD"
+            },
+            {
+                question: "O que é DBA?",
+                answer: "<strong>Administradores de Banco de Dados</strong>, são os responsáveis pelo controle ao acesso aos dados e pela coordenação da utilização do Banco de Dados.",
+                category: "sgbd",
+                block: "SGBD"
+            },
+            {
+                question: "O que é Administrador de dados?",
+                answer: "É a pessoa que fornece o <strong>suporte técnico necessário</strong> para implementar as decisões, como por exemplo: autorizar o acesso, monitorar sua utilização, avaliar o desempenho etc.",
+                category: "sgbd",
+                block: "SGBD"
+            },
+            {
+                question: "Quais as funções do DBA?",
+                answer: "As principais funções são:<br><br><strong>I</strong>nstalar<br><strong>C</strong>onfigurar<br><strong>M</strong>anter<br><strong>O</strong>timizar<br><strong>P</strong>roteger<br><br>🎯 Mnemônico: <strong>I-C-M-O-P</strong>",
+                category: "sgbd",
+                block: "SGBD"
+            },
+            {
+                question: "O que é Inteligência?",
+                answer: "É o processo contínuo de <strong>monitoramento e análise estratégica</strong>, para a tomada de decisão de problemas complexos.",
+                category: "sgbd",
+                block: "SGBD"
+            },
+            {
+                question: "Dê exemplo de SGBD?",
+                answer: "<strong>MySQL</strong>, <strong>PostgreSQL</strong>, <strong>SQLite</strong>, Cassandra, Redis etc.",
+                category: "sgbd",
+                block: "SGBD"
+            },
+            {
+                question: "O que é índice no SGBD?",
+                answer: "É uma <strong>estrutura de dados auxiliar</strong> que melhora a velocidade de recuperação de dados de uma tabela.",
+                category: "sgbd",
+                block: "SGBD"
+            },
+
+            // BLOCO 3: Características do SGBD
+            {
+                question: "O que é auto-contenção?",
+                answer: "É quando um SGBD <strong>não armazena apenas os dados, mas também toda a descrição completa da estrutura dos dados</strong>.<br><br>💡 SGBD = Dados + Metadados",
+                category: "caracteristicas",
+                block: "Características"
+            },
+            {
+                question: "O que é metadados?",
+                answer: "São <strong>informações que descrevem a estrutura, característica e propriedades</strong> dos dados armazenados no banco de dados.<br><br>📌 'Dados sobre dados'",
+                category: "caracteristicas",
+                block: "Características"
+            },
+            {
+                question: "O que é Independência dos dados?",
+                answer: "É a capacidade de <strong>modificar a estrutura de dados em um determinado nível sem afetar os níveis superiores</strong>. Existem dois tipos:<br><br><strong>Física:</strong> altera o esquema físico sem afetar o esquema lógico (melhora desempenho)<br><br><strong>Lógica:</strong> altera o esquema lógico sem modificar aplicações (ex: adicionar novo atributo)",
+                category: "caracteristicas",
+                block: "Características"
+            },
+            {
+                question: "O que é abstração dos dados no MER?",
+                answer: "<strong>Oculta detalhes complexos de armazenamento</strong> e apresenta aos usuários apenas informações relevantes simplificadas. Já no MER, permite representar entidades e relacionamentos do mundo real sem se preocupar com detalhes de implementação física.",
+                category: "caracteristicas",
+                block: "Características"
+            },
+            {
+                question: "O que é visões?",
+                answer: "Cada usuário <strong>visualiza os dados de forma diferente</strong> (cada um no seu dispositivo), um subconjunto de dados do BD.",
+                category: "caracteristicas",
+                block: "Características"
+            },
+            {
+                question: "O que é Transação no SGBD?",
+                answer: "É uma <strong>unidade lógica de trabalho</strong> que consiste em uma ou mais operações de BD que devem ser executadas completamente ou não executadas.<br><br>🔒 <strong>ACID:</strong><br><strong>A</strong>tomicidade<br><strong>C</strong>onsistência<br><strong>I</strong>solamento<br><strong>D</strong>urabilidade",
+                category: "caracteristicas",
+                block: "Características"
+            },
+            {
+                question: "O que é Integridade Referencial?",
+                answer: "Garante que <strong>valores de chaves estrangeiras em uma tabela correspondam a valores de chaves primárias em outra tabela</strong> relacional. Mantendo consistência.",
+                category: "caracteristicas",
+                block: "Características"
+            },
+            {
+                question: "Dê exemplos de aplicações utilizando Banco de Dados?",
+                answer: "<strong>Bancárias:</strong> saque, depósito<br><strong>Bibliotecas:</strong> catálogo, usuários<br><strong>Indústria:</strong> venda, compra",
+                category: "caracteristicas",
+                block: "Características"
+            },
+            {
+                question: "O que é Restrição de Segurança?",
+                answer: "<strong>Impede o acesso de pessoas não autorizadas</strong>, evitando utilizarem determinado arquivo ou campo.",
+                category: "caracteristicas",
+                block: "Características"
+            },
+            {
+                question: "O que é redundância de dados no banco de dados?",
+                answer: "É quando a <strong>mesma informação é armazenada em múltiplos locais</strong> no BD. Podendo causar problemas como: perda de espaço de armazenamento, dificuldade de manutenção, inconsistência, etc.",
+                category: "caracteristicas",
+                block: "Características"
+            },
+            {
+                question: "O que é Inconsistência de dados no banco de dados?",
+                answer: "É quando <strong>diferentes cópias da mesma informação apresentam valores contraditórios</strong>. Uma cópia é atualizada e a outra não.",
+                category: "caracteristicas",
+                block: "Características"
+            },
+            {
+                question: "O que é compartilhamento de dados no banco de dados?",
+                answer: "É a capacidade de <strong>vários usuários acessarem o mesmo BD ao mesmo tempo</strong>.",
+                category: "caracteristicas",
+                block: "Características"
+            },
+            {
+                question: "O que é Independência dos dados no banco de dados?",
+                answer: "É a capacidade de <strong>alterar um nível de esquema sem necessitar de alterações no nível superior</strong>.<br><br><strong>Física:</strong> mudanças no armazenamento físico não afetam o esquema conceitual<br><br><strong>Lógica:</strong> mudanças no esquema conceitual têm impacto mínimo nas aplicações",
+                category: "caracteristicas",
+                block: "Características"
+            },
+
+            // BLOCO 4: Arquitetura de 3 Níveis
+            {
+                question: "O que é Alto Nível no Modelo de dados?",
+                answer: "Representa os dados de forma <strong>próxima à visão do usuário</strong>, sem detalhes de implementação.",
+                category: "arquitetura",
+                block: "Arquitetura"
+            },
+            {
+                question: "O que é Baixo Nível no Modelo de dados?",
+                answer: "Descreve como os dados são <strong>armazenados fisicamente no computador</strong>. É voltada para especialistas técnicos.",
+                category: "arquitetura",
+                block: "Arquitetura"
+            },
+            {
+                question: "O que é Instância?",
+                answer: "É o <strong>conjunto de dados armazenados no BD em um determinado momento</strong>, podendo mudar frequentemente conforme os dados são adicionados.",
+                category: "arquitetura",
+                block: "Arquitetura"
+            },
+            {
+                question: "O que é Esquema?",
+                answer: "É a <strong>descrição da estrutura do BD</strong>, definindo a organização lógica dos dados. Especifica nomes de tabelas, atributos, tipos de dados, restrições e relacionamentos. Diferente da instância, não muda constantemente.",
+                category: "arquitetura",
+                block: "Arquitetura"
+            },
+            {
+                question: "Com relação a arquitetura do banco de dados, o que é nível externo?",
+                answer: "É o <strong>nível mais alto</strong> da arquitetura de três esquemas. É a forma de diferentes grupos de usuários veem o BD, implementando através da 'Visão'.<br><br>🎯 Mnemônico ECI: <strong>E</strong>xterno = <strong>E</strong>le vê",
+                category: "arquitetura",
+                block: "Arquitetura"
+            },
+            {
+                question: "Com relação a arquitetura do banco de dados, o que é nível interno?",
+                answer: "É o <strong>nível mais baixo</strong> da arquitetura. É a forma de como os dados são fisicamente armazenados no hardware.<br><br>🎯 Mnemônico ECI: <strong>I</strong>nterno = <strong>I</strong>nfra/hardware",
+                category: "arquitetura",
+                block: "Arquitetura"
+            },
+            {
+                question: "Com relação a arquitetura do banco de dados, o que é nível conceitual?",
+                answer: "É o <strong>nível intermediário</strong> da arquitetura. É como a estrutura completa o BD para todos os usuários, entidades, atributos, relacionamentos e restrições.<br><br>🎯 Mnemônico ECI: <strong>C</strong>onceitual = <strong>C</strong>érebro do BD",
+                category: "arquitetura",
+                block: "Arquitetura"
+            },
+
+            // BLOCO 5: Linguagens SQL
+            {
+                question: "Explique o que é DDL?",
+                answer: "É um conjunto de comandos SQL usados para <strong>definir e modificar a estrutura do BD</strong>.<br><br>Principais comandos:<br><strong>C</strong>REATE (criar objetos)<br><strong>A</strong>LTER (modificar estrutura)<br><strong>T</strong>RUNCATE (remover todos os registros)<br><br>🎯 Mnemônico: <strong>C-A-T</strong>",
+                category: "sql",
+                block: "SQL"
+            },
+            {
+                question: "Explique o que é DML?",
+                answer: "É um conjunto de comandos SQL usados para <strong>manipular dados armazenados</strong>.<br><br>Principais comandos:<br><strong>S</strong>ELECT (consultar)<br><strong>I</strong>NSERT (inserir)<br><strong>U</strong>PDATE (atualizar)<br><strong>D</strong>ELETE (deletar)<br><br>🎯 Mnemônico: <strong>SI-U-D</strong>",
+                category: "sql",
+                block: "SQL"
+            },
+            {
+                question: "Explique o que é DCL?",
+                answer: "É um conjunto de comandos SQL usados para <strong>controlar o acesso aos dados e gerenciar permissões</strong>.<br><br>Principais comandos:<br><strong>G</strong>RANT (conceder permissões)<br><strong>R</strong>EVOKE (revogar permissões)<br><br>🎯 Mnemônico: <strong>G-R</strong>",
+                category: "sql",
+                block: "SQL"
+            },
+
+            // BLOCO 6: MER - Conceitos
+            {
+                question: "O que é Padronização de Dados no Banco de Dados?",
+                answer: "É o processo de <strong>aplicar regras uniformes para formatação, nomenclatura e estruturação dos dados</strong>. Garantindo consistência.",
+                category: "mer",
+                block: "MER"
+            },
+            {
+                question: "O que é chave primária?",
+                answer: "É um atributo que <strong>identifica unicamente cada registro</strong> em uma tabela.<br><br>✅ Não tem valor duplicado<br>✅ Não pode ser nulo<br>✅ É imutável<br><br>💛 Pense: Chave de ouro",
+                category: "mer",
+                block: "MER"
+            },
+            {
+                question: "O que é chave estrangeira?",
+                answer: "É um atributo em uma tabela que <strong>referencia a chave primária de outra tabela</strong> (ou da mesma). Estabelecendo um relacionamento entre tabelas.<br><br>🔗 Pense: Ponte entre tabelas",
+                category: "mer",
+                block: "MER"
+            },
+            {
+                question: "O que é Entidade no MER?",
+                answer: "É um <strong>objeto do mundo real que possui existência independente</strong> e pode ser identificado de forma única. Algo que a informação presente quer ser armazenada no BD.<br><br>📌 Exemplos: Cliente, Produto, Funcionário",
+                category: "mer",
+                block: "MER"
+            },
+            {
+                question: "O que é Entidade Fraca no MER?",
+                answer: "É quando <strong>não possui chave primária própria suficiente</strong> para identifica-la unicamente, dependendo de outra entidade para ser identificada.<br><br>👶 Pense: Criança segurando mão do pai",
+                category: "mer",
+                block: "MER"
+            },
+            {
+                question: "O que é padronização dos dados (valor default) no Banco de Dados?",
+                answer: "É um <strong>valor pré-estabelecido</strong> que é automaticamente atribuído a um atributo quando nenhum valor é fornecido durante a adição de dados.",
+                category: "mer",
+                block: "MER"
+            },
+            {
+                question: "O que é atributo monovalorado?",
+                answer: "É aquele que possui <strong>apenas um único valor</strong> para cada entidade. Não pode ter vários valores ao mesmo tempo.<br><br>📌 Exemplo: CPF (uma pessoa tem um único CPF)",
+                category: "mer",
+                block: "MER"
+            },
+            {
+                question: "O que é atributo composto?",
+                answer: "É aquele que pode ser <strong>divido em sub-atributos menores</strong> com significados independentes. Possuindo estrutura hierárquica.<br><br>📌 Exemplo: Nome = PrimeiroNome + Sobrenome",
+                category: "mer",
+                block: "MER"
+            },
+            {
+                question: "O que é atributo derivado?",
+                answer: "É aquele cujo <strong>valor pode ser calculado a partir de outros atributos</strong>. Não precisa ser armazenado fisicamente, e calculado só quando precisa.<br><br>📌 Exemplo: Idade ← calculado de DataNascimento",
+                category: "mer",
+                block: "MER"
+            },
+            {
+                question: "O que é Domínio de um Atributo?",
+                answer: "É o <strong>conjunto de valores válidos</strong> que o atributo pode assumir. Define o tipo de dado e as restrições de valores.<br><br>📌 Exemplo: Domínio de 'Sexo' = {M, F}",
+                category: "mer",
+                block: "MER"
+            },
+            {
+                question: "O que é Chave Candidata?",
+                answer: "É um atributo que <strong>pode identificar unicamente cada registro</strong> de uma tabela. Uma tabela pode ter várias chaves candidatas, mas apenas uma é escolhida como chave primária.<br><br>🥉 Pense: Chave de bronze (potencial)",
+                category: "mer",
+                block: "MER"
+            },
+            {
+                question: "O que é Relacionamento ou Tabela de associação?",
+                answer: "Representa a <strong>associação entre duas ou mais entidades</strong>. Define como as entidades se conectam.<br><br>📌 Exemplo: Aluno CURSA Disciplina",
+                category: "mer",
+                block: "MER"
+            },
+            {
+                question: "O que é Cardinalidade do MER?",
+                answer: "Especifica o <strong>número de registros de uma entidade</strong> que podem estar associadas a registros de outra entidade através de um relacionamento.<br><br>Tipos principais:<br><strong>1:1</strong> - Pessoa : Passaporte<br><strong>1:N</strong> - Mãe : Filhos<br><strong>N:M</strong> - Alunos : Disciplinas",
+                category: "mer",
+                block: "MER"
+            }
+        ];
+
+        let currentIndex = 0;
+        let filteredCards = [...flashcards];
+        let knownCount = 0;
+        let unknownCount = 0;
+        let knownCards = new Set();
+        let unknownCards = new Set();
+
+        function displayCard() {
+            if (filteredCards.length === 0) {
+                document.getElementById('question').innerHTML = 'Nenhum flashcard disponível.';
+                document.getElementById('answer').innerHTML = '';
+                document.getElementById('cardNumber').textContent = '0';
+                document.getElementById('cardNumberBack').textContent = '0';
+                document.getElementById('cardCategory').textContent = '';
+                document.getElementById('cardCategoryBack').textContent = '';
+                updateStats();
+                updateProgress();
+                updateButtons();
+                document.getElementById('flashcard').classList.remove('flipped');
+                return;
+            }
+
+            const card = filteredCards[currentIndex];
+            document.getElementById('question').innerHTML = card.question;
+            document.getElementById('answer').innerHTML = card.answer;
+            document.getElementById('cardNumber').textContent = currentIndex + 1;
+            document.getElementById('cardNumberBack').textContent = currentIndex + 1;
+            document.getElementById('cardCategory').textContent = card.block;
+            document.getElementById('cardCategoryBack').textContent = card.block;
+            
+            updateStats();
+            updateProgress();
+            updateButtons();
+            
+            // Reset flip
+            document.getElementById('flashcard').classList.remove('flipped');
+        }
+
+        function flipCard() {
+            document.getElementById('flashcard').classList.toggle('flipped');
+        }
+
+        function nextCard() {
+            if (currentIndex < filteredCards.length - 1) {
+                currentIndex++;
+                displayCard();
+            } else {
+                showCompletion();
+            }
+        }
+
+        function prevCard() {
+            if (currentIndex > 0) {
+                currentIndex--;
+                displayCard();
+            }
+        }
+
+        function markAsKnown() {
+            const cardKey = filteredCards[currentIndex].question;
+            knownCards.add(cardKey);
+            unknownCards.delete(cardKey);
+            nextCard();
+        }
+
+        function markAsUnknown() {
+            const cardKey = filteredCards[currentIndex].question;
+            unknownCards.add(cardKey);
+            knownCards.delete(cardKey);
+            nextCard();
+        }
+
+        function updateStats() {
+            document.getElementById('currentCard').textContent = currentIndex + 1;
+            document.getElementById('totalCards').textContent = filteredCards.length;
+            document.getElementById('knownCards').textContent = knownCards.size;
+            document.getElementById('unknownCards').textContent = unknownCards.size;
+        }
+
+        function updateProgress() {
+            const progress = filteredCards.length > 0 ? ((currentIndex + 1) / filteredCards.length) * 100 : 0;
+            document.getElementById('progressFill').style.width = progress + '%';
+        }
+
+        function updateButtons() {
+            document.getElementById('prevBtn').disabled = currentIndex === 0;
+            document.getElementById('nextBtn').disabled = currentIndex === filteredCards.length - 1;
+        }
+
+        function filterByBlock(block, event) {
+            // Update active button
+            document.querySelectorAll('.controls .btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            if (event && event.target) {
+                event.target.classList.add('active');
+            }
+
+            if (block === 'all') {
+                filteredCards = [...flashcards];
+            } else {
+                filteredCards = flashcards.filter(card => card.category === block);
+            }
+            
+            currentIndex = 0;
+            displayCard();
+        }
+
+        function shuffleCards() {
+            for (let i = filteredCards.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [filteredCards[i], filteredCards[j]] = [filteredCards[j], filteredCards[i]];
+            }
+            currentIndex = 0;
+            displayCard();
+        }
+
+        function showCompletion() {
+            document.getElementById('cardContainer').style.display = 'none';
+            document.querySelector('.navigation').style.display = 'none';
+            document.querySelector('.action-buttons').style.display = 'none';
+            document.getElementById('completionScreen').classList.add('active');
+            
+            const total = knownCards.size + unknownCards.size;
+            const percentage = total > 0 ? Math.round((knownCards.size / total) * 100) : 0;
+            
+            document.getElementById('finalKnown').textContent = knownCards.size;
+            document.getElementById('finalUnknown').textContent = unknownCards.size;
+            document.getElementById('finalPercentage').textContent = percentage + '%';
+        }
+
+        function resetStudy() {
+            knownCards.clear();
+            unknownCards.clear();
+            currentIndex = 0;
+            filteredCards = [...flashcards];
+            
+            document.getElementById('cardContainer').style.display = 'block';
+            document.querySelector('.navigation').style.display = 'flex';
+            document.querySelector('.action-buttons').style.display = 'flex';
+            document.getElementById('completionScreen').classList.remove('active');
+            
+            displayCard();
+        }
+
+        function reviewUnknown() {
+            if (unknownCards.size === 0) {
+                alert('Parabéns! Você não tem questões para revisar! 🎉');
+                return;
+            }
+            
+            filteredCards = flashcards.filter(card => unknownCards.has(card.question));
+            currentIndex = 0;
+            
+            document.getElementById('cardContainer').style.display = 'block';
+            document.querySelector('.navigation').style.display = 'flex';
+            document.querySelector('.action-buttons').style.display = 'flex';
+            document.getElementById('completionScreen').classList.remove('active');
+            
+            displayCard();
+        }
+
+        // Initialize
+        displayCard();
+    </script>
+</body>
+</html>
