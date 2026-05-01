@@ -12,7 +12,7 @@ Ferramenta de estudo no estilo flashcard: o usuário vê a pergunta, clica para 
 
 ## ✨ Funcionalidades
 
-- **54 questões** distribuídas em 6 categorias temáticas
+- **50 questões** distribuídas em 6 categorias temáticas
 - **Flip animado** nos cards (frente = pergunta / verso = resposta)
 - **Filtro por categoria** para estudar um tema de cada vez
 - **Embaralhamento** aleatório das questões
