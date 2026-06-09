@@ -66,7 +66,6 @@ FlashcardsBD/
    git clone https://github.com/seu-usuario/flashcards-bd1.git
    ```
 2. Acesse o link abaixo:
-   [Flashcards - Banco de Dados I](https://gustavolg95.github.io/revisao_BD1/)
+   [Revisão para a Avaliação](https://gustavolg95.github.io/revisao_BD1/)
 
 > Nenhuma dependência ou instalação necessária.
->
