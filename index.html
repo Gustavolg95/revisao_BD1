@@ -1,201 +1,41 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Flashcards - Banco de Dados I</title>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css">
-
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Revisão Avaliação - Banco de Dados I</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            background: #0f172a;
+            color: white;
+        }
+        h1 { margin-bottom: 40px; font-size: 2rem; }
+        .links { display: flex; gap: 20px; }
+        a {
+            padding: 20px 40px;
+            border-radius: 12px;
+            text-decoration: none;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: white;
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            transition: transform 0.2s;
+        }
+        a:hover { transform: translateY(-4px); }
+    </style>
 </head>
 <body>
-<div class="top">
-  <h1>Flashcards BD I</h1>
-  <p class="sub">Banco de Dados I - 47 questões + conteúdo novo de Normalização</p>
-</div>
-
-<div class="controls" id="filters">
-  <button class="pill active" onclick="filter('all',this)">Todas</button>
-  <button class="pill" onclick="filter('fundamentos',this)">Fundamentos</button>
-  <button class="pill" onclick="filter('sgbd',this)">SGBD &amp; Arquitetura</button>
-  <button class="pill" onclick="filter('sql',this)">DDL/DML/DCL</button>
-  <button class="pill" onclick="filter('mer',this)">MER &amp; Chaves</button>
-  <button class="pill novo" onclick="filter('norm',this)">🆕 Normalização</button>
-  <button class="pill" onclick="shuffleCards()">↻ Embaralhar</button>
-</div>
-
-<div class="stats">
-  <div class="stat"><div class="stat-n" id="sAtual">1</div><div class="stat-l">Atual</div></div>
-  <div class="stat"><div class="stat-n" id="sTotal">47</div><div class="stat-l">Total</div></div>
-  <div class="stat"><div class="stat-n" style="color:var(--green)" id="sSei">0</div><div class="stat-l">Sei ✓</div></div>
-  <div class="stat"><div class="stat-n" style="color:var(--red)" id="sRev">0</div><div class="stat-l">Revisar</div></div>
-</div>
-
-<div class="prog-wrap"><div class="prog-fill" id="prog"></div></div>
-
-<div class="scene" id="scene">
-  <div class="card" id="card" onclick="flip()">
-    <div class="face front">
-      <span class="badge" id="badgeF"></span>
-      <span class="num" id="numF"></span>
-      <div class="q" id="qtext"></div>
-      <span class="hint">Clique para revelar</span>
-    </div>
-    <div class="face back">
-      <span class="badge" id="badgeB"></span>
-      <span class="num" id="numB"></span>
-      <div class="a" id="atext"></div>
-      <span class="hint">Clique para voltar</span>
-    </div>
-  </div>
-</div>
-
-<div class="actions">
-  <button class="act-btn dunno" onclick="mark(false)">✕ Revisar</button>
-  <button class="act-btn know" onclick="mark(true)">✓ Eu sei!</button>
-</div>
-<div class="nav">
-  <button class="nav-btn ghost" id="btnPrev" onclick="go(-1)">◄</button>
-  <button class="nav-btn" id="btnNext" onclick="go(1)">Próxima ►</button>
-</div>
-
-<div class="done" id="done">
-  <h2>🎉 Rodada completa!</h2>
-  <p style="color:var(--txt2);font-size:1.1rem">Veja como foi seu desempenho:</p>
-  <div class="done-stats">
-    <div class="done-stat"><div class="stat-n" style="color:var(--green)" id="dSei">0</div><div class="stat-l">Dominadas</div></div>
-    <div class="done-stat"><div class="stat-n" style="color:var(--red)" id="dRev">0</div><div class="stat-l">Para revisar</div></div>
-    <div class="done-stat"><div class="stat-n" style="color:var(--amber)" id="dPct">0%</div><div class="stat-l">Taxa de acerto</div></div>
-  </div>
-  <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
-    <button class="nav-btn ghost" onclick="restart()">↺ Recomeçar</button>
-    <button class="nav-btn" onclick="reviewWrong()">📚 Revisar erros</button>
-  </div>
-</div>
-
-<script>
-const ALL = [
-  // FUNDAMENTOS
-  {c:'fundamentos',q:'O que é dado?',a:'<strong>Fato bruto, isolado, sem contexto</strong>. Valores quantificados <strong>sem ideia completa</strong> ou significado.'},
-  {c:'fundamentos',q:'O que é Informação?',a:'Dado <strong>processado, contextualizado e interpretado</strong>, possuindo relevância e significado.'},
-  {c:'fundamentos',q:'O que é conhecimento?',a:'Conjunto de informações que permitem a <strong>tomada de decisões</strong> e resolução de problemas.'},
-  {c:'fundamentos',q:'O que é Dado Persistente?',a:'Dados que ficam <strong>armazenados por muito tempo</strong> no banco de dados (ex: produtos, alunos, pacientes).'},
-  {c:'fundamentos',q:'O que é Modelo de Dados?',a:'Representação <strong>abstrata da estrutura de dados</strong> de um sistema, descrevendo como os dados são <strong>organizados, relacionados e armazenados</strong>.'},
-  // SGBD & ARQUITETURA
-  {c:'sgbd',q:'O que é SGBD?',a:'<strong>Sistema Gerenciador de Banco de Dados</strong> — software responsável pelo gerenciamento dos dados. Ex: MySQL, PostgreSQL, SQLite.'},
-  {c:'sgbd',q:'O que é DBA (Administrador de dados)?',a:'Pessoa que fornece <strong>suporte técnico</strong> para implementar decisões: autorizar acesso, monitorar uso, avaliar desempenho.'},
-  {c:'sgbd',q:'Quais as funções do DBA?',a:'<strong>Instalar · Configurar · Manter · Otimizar · Proteger</strong> os bancos de dados. Mnemônico: I-C-M-O-P'},
-  {c:'sgbd',q:'O que é Visões no SGBD?',a:'Cada usuário <strong>visualiza os dados de forma diferente</strong> — um subconjunto personalizado do BD.'},
-  {c:'sgbd',q:'O que é Transação no SGBD?',a:'Unidade lógica de trabalho que deve ser executada <strong>completamente ou não executada</strong>. Propriedades: <strong>ACID</strong> (<strong>A</strong>tomicidade, <strong>C</strong>onsistência, <strong>I</strong>solamento, <strong>D</strong>urabilidade).'},
-  {c:'sgbd',q:'O que é Integridade Referencial?',a:'Garante que <strong>valores de chaves estrangeiras correspondam à chave primária</strong> de outra tabela, mantendo consistência.'},
-  {c:'sgbd',q:'O que é Instância (ou Estado) no SGBD?',a:'Conjunto de <strong>dados concretos armazenados em um determinado momento</strong>. Muda frequentemente com inserções, atualizações e exclusões.'},
-  {c:'sgbd',q:'O que é Esquema no SGBD?',a:'"Projeto" do banco — <strong>descrição da estrutura</strong>: nomes de tabelas, atributos, tipos de dados, restrições e relacionamentos. Não muda frequentemente.'},
-  {c:'sgbd',q:'Nível Externo na arquitetura de 3 esquemas?',a:'<strong>Nível mais alto</strong>. Descreve como diferentes grupos de usuários enxergam o banco. Implementado por meio de <strong>Visões</strong>.'},
-  {c:'sgbd',q:'Nível Interno na arquitetura de 3 esquemas?',a:'<strong>Nível mais baixo</strong>. Forma como os dados são <strong>fisicamente armazenados no hardware</strong>.'},
-  {c:'sgbd',q:'Nível Conceitual na arquitetura de 3 esquemas?',a:'<strong>Nível intermediário</strong>. Estrutura completa do BD para todos os usuários: entidades, atributos, relacionamentos e restrições.'},
-  {c:'sgbd',q:'O que é redundância de dados?',a:'Mesma informação armazenada em <strong>múltiplos locais</strong>. Causa: dificuldade de manutenção e inconsistência.'},
-  {c:'sgbd',q:'O que é inconsistência de dados?',a:'Diferentes cópias da mesma informação com <strong>valores contraditórios</strong> — uma cópia atualizada, outra não.'},
-  {c:'sgbd',q:'O que é compartilhamento de dados?',a:'Capacidade de <strong>vários usuários acessarem o mesmo BD</strong> ao mesmo tempo.'},
-  {c:'sgbd',q:'O que é Independência dos dados?',a:'Capacidade de alterar um nível de esquema <strong>sem precisar alterar níveis superiores</strong>.<br><strong>Física:</strong> altera armazenamento sem afetar o conceitual.<br><strong>Lógica:</strong> altera o conceitual com mínimo impacto nas aplicações.'},
-  // DDL / DML / DCL
-  {c:'sql',q:'O que é DDL?',a:'É um conjunto de comandos SQL usados para <strong>definir e modificar a estrutura do BD</strong>.<br><br>Principais comandos:<br><strong>C</strong>REATE (criar objetos)<br><strong>A</strong>LTER (modificar estrutura)<br><strong>T</strong>RUNCATE (remover todos os registros)<br>🎯 Mnemônico: <strong>C-A-T</strong>'},
-  {c:'sql',q:'O que é DML?',a:'É um conjunto de comandos SQL usados para <strong>manipular dados armazenados</strong>.<br>Principais comandos:<br><strong>S</strong>ELECT (consultar)<br><strong>I</strong>NSERT (inserir)<br><strong>U</strong>PDATE (atualizar)<br><strong>D</strong>ELETE (deletar)<br>🎯 Mnemônico: <strong>S-I-U-D</strong>'},
-  {c:'sql',q:'O que é DCL?',a:'É um conjunto de comandos SQL usados para <strong>controlar o acesso aos dados e gerenciar permissões</strong>.<br><br>Principais comandos:<br><strong>G</strong>RANT (conceder permissões)<br><strong>R</strong>EVOKE (revogar permissões)'},
-  // MER & CHAVES
-  {c:'mer',q:'O que é Entidade no MER?',a:'É um <strong>objeto do mundo real que possui existência independente</strong> e pode ser identificado de forma única. Algo que a informação presente quer ser armazenada no BD.<br><br>📌 Exemplos: Cliente, Produto, Funcionário'},
-  {c:'mer',q:'O que é Entidade Fraca no MER?',a:'Entidade que <strong>não possui chave primária própria independente</strong> — depende de outra entidade para ser identificada.'},
-  {c:'mer',q:'O que é Chave Primária?',a:'É um atributo que <strong>identifica unicamente cada registro</strong> em uma tabela.<br><br>✅ Não tem valor duplicado<br>✅ Não pode ser nulo<br>✅ É imutável'},
-  {c:'mer',q:'O que é Chave Estrangeira?',a:'Atributo que <strong>referencia a chave primária de outra tabela</strong>, estabelecendo relacionamento entre elas.'},
-  {c:'mer',q:'O que é Chave Candidata?',a:'É um atributo que <strong>pode identificar unicamente cada registro</strong> de uma tabela. Uma tabela pode ter várias chaves candidatas, mas apenas uma é escolhida como chave primária.'},
-  {c:'mer',q:'O que é atributo composto?',a:'É aquele que pode ser <strong>divido em sub-atributos menores</strong> com significados independentes. Possuindo estrutura hierárquica.<br><br>📌 Exemplo: Nome = PrimeiroNome + Sobrenome'},
-  {c:'mer',q:'O que é atributo derivado?',a:'É aquele cujo <strong>valor pode ser calculado a partir de outros atributos</strong>. Não precisa ser armazenado fisicamente, e calculado só quando precisa.<br><br>📌 Exemplo: Idade ← calculado de DataNascimento'},
-  {c:'mer',q:'O que é Domínio de um Atributo?',a:"<strong>Conjunto de valores válidos</strong> que o atributo pode assumir. Define tipo e restrições.<br><br>📌 Exemplo: Domínio de 'Sexo' = {M, F}."},
-  {c:'mer',q:'O que é Cardinalidade no MER?',a:'Especifica o <strong>número de registros de uma entidade</strong> que podem estar associadas a registros de outra entidade através de um relacionamento.<br><br>Tipos principais:<br><strong>1:1</strong> - Pessoa : Passaporte<br><strong>1:N</strong> - Mãe : Filhos<br><strong>N:M</strong> - Alunos : Disciplinas'},
-  {c:'mer',q:'O que é Relacionamento ou Tabela de Associação?',a:'Representa a <strong>associação entre duas ou mais entidades</strong>, definindo como elas se conectam.'},
-  {c:'mer',q:'O que é Padronização de Dados?',a:'É o processo de <strong>aplicar regras uniformes para formatação, nomenclatura e estruturação dos dados</strong>. Garantindo consistência.'},
-  // NORMALIZAÇÃO (NOVO)
-  {c:'norm',q:'O que é Normalização de dados?',a:'Processo formal de organizar atributos e tabelas para <strong>minimizar redundâncias, eliminar anomalias</strong> e garantir integridade.'},
-  {c:'norm',q:'O que é Dependência Funcional?',a:'Atributo depende funcionalmente de outro: para cada valor de X, existe <strong>exatamente um valor de Y</strong>.<br>Notação: <strong>X → Y</strong><br>Ex: CPF → Nome'},
-  {c:'norm',q:'O que é Dependência Funcional Parcial?',a:'Em um identificador composto, atributo depende <strong>apenas de PARTE da chave primária</strong>, não da chave inteira.'},
-  {c:'norm',q:'O que é Dependência Funcional Transitiva?',a:'Atributo não-chave depende de <strong>outro atributo não-chave</strong>.<br>A → B → C (C depende de A via B)'},
-  {c:'norm',q:'O que é a 1ª Forma Normal (1FN)?',a:'Todos os atributos possuem <strong>valores atômicos (indivisíveis)</strong> e não há atributos multivalorados.'},
-  {c:'norm',q:'O que é a 2ª Forma Normal (2FN)?',a:'Estar na 1FN + todos os atributos não-chave dependem <strong>funcionalmente da chave primária INTEIRA</strong>. Elimina dependência parcial.'},
-  {c:'norm',q:'O que é a 3ª Forma Normal (3FN)?',a:'Estar na 1FN e 2FN + <strong>não há dependência funcional transitiva</strong> (nenhum atributo não-chave depende de outro não-chave).'},
-  {c:'norm',q:'O que é FNBC – Forma Normal de Boyce-Codd?',a:'Todo <strong>determinante da tabela é chave candidata</strong>. Versão mais rigorosa da 3FN.'},
-  {c:'norm',q:'O que é Dependência Multifuncional?',a:'Associações <strong>N:M entre atributos</strong> — uma entidade de relacionamento ternária.'},
-  {c:'norm',q:'O que é a 4ª Forma Normal (4FN)?',a:'Estar na 3FN + <strong>não existir dependência multifuncional</strong>. Separa as dependências em entidades distintas.'},
-  {c:'norm',q:'O que é Dependência de Junção?',a:'Tabela que pode ser <strong>reconstruída pela junção de duas ou mais projeções</strong> dela mesma sem perda ou ganho de informação.'},
-  {c:'norm',q:'O que é a 5ª Forma Normal (5FN)?',a:'Estar na 3FN + <strong>não existir dependência de junção</strong>. Garante que a tabela não pode ser decomposta sem perda de informação.'},
-  {c:'norm',q:'Qual a ordem das Formas Normais?',a:'<strong>1FN → 2FN → 3FN → FNBC → 4FN → 5FN</strong><br>Cada forma inclui todas as anteriores como pré-requisito.'},
-];
-
-let deck=[...ALL], idx=0, sei=new Set(), rev=new Set();
-
-function render(){
-  if(idx>=deck.length){showDone();return}
-  const c=deck[idx];
-  document.getElementById('qtext').innerHTML=c.q;
-  document.getElementById('atext').innerHTML=c.a;
-  const num=`${idx+1}/${deck.length}`;
-  ['badgeF','badgeB'].forEach(id=>document.getElementById(id).textContent=labels[c.c]||c.c);
-  ['numF','numB'].forEach(id=>document.getElementById(id).textContent=num);
-  document.getElementById('sAtual').textContent=idx+1;
-  document.getElementById('sTotal').textContent=deck.length;
-  document.getElementById('sSei').textContent=sei.size;
-  document.getElementById('sRev').textContent=rev.size;
-  const pct=(idx+1)/deck.length*100;
-  document.getElementById('prog').style.width=pct+'%';
-  document.getElementById('btnPrev').disabled=idx===0;
-  document.getElementById('btnNext').disabled=false;
-  document.getElementById('card').classList.remove('flipped');
-}
-
-const labels={fundamentos:'Fundamentos',sgbd:'SGBD & Arquitetura',sql:'DDL/DML/DCL',mer:'MER & Chaves',norm:'🆕 Normalização'};
-
-function flip(){document.getElementById('card').classList.toggle('flipped')}
-function go(d){idx=Math.max(0,Math.min(deck.length-1,idx+d));render()}
-function mark(know){
-  const key=deck[idx].q;
-  if(know){sei.add(key);rev.delete(key);}else{rev.add(key);sei.delete(key);}
-  if(idx<deck.length-1){idx++;render();}else{showDone();}
-}
-function filter(cat,btn){
-  document.querySelectorAll('.pill').forEach(p=>p.classList.remove('active'));
-  btn.classList.add('active');
-  deck=cat==='all'?[...ALL]:ALL.filter(c=>c.c===cat);
-  idx=0;render();
-}
-function shuffleCards(){
-  for(let i=deck.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[deck[i],deck[j]]=[deck[j],deck[i]];}
-  idx=0;render();
-}
-function showDone(){
-  document.getElementById('scene').style.display='none';
-  document.querySelectorAll('.actions,.nav,.prog-wrap').forEach(e=>e.style.display='none');
-  const done=document.getElementById('done');
-  done.classList.add('show');
-  const total=sei.size+rev.size;
-  const pct=total?Math.round(sei.size/total*100):0;
-  document.getElementById('dSei').textContent=sei.size;
-  document.getElementById('dRev').textContent=rev.size;
-  document.getElementById('dPct').textContent=pct+'%';
-}
-function restart(){
-  sei.clear();rev.clear();idx=0;deck=[...ALL];
-  document.getElementById('scene').style.display='block';
-  document.querySelectorAll('.actions,.nav,.prog-wrap').forEach(e=>e.style.display='');
-  document.getElementById('done').classList.remove('show');
-  render();
-}
-function reviewWrong(){
-  if(!rev.size){alert('Nenhum erro! Parabéns 🎉');return;}
-  deck=ALL.filter(c=>rev.has(c.q));idx=0;
-  document.getElementById('scene').style.display='block';
-  document.querySelectorAll('.actions,.nav,.prog-wrap').forEach(e=>e.style.display='');
-  document.getElementById('done').classList.remove('show');
-  render();
-}
-render();
-</script>
+    <h1>📊 Revisão Avaliação - Banco de Dados I</h1>
+    <div class="links">
+        <a href="flashcards/flashcards.html">📚 Resumo</a>
+        <a href="simulado/simulado.html">📝 Simulado</a>
+        </div>
 </body>
 </html>
