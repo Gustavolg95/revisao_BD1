@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simulado BD I – 2ª Prova</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+
+</head>
+<body>
+
+<!-- BOAS VINDAS -->
+<div class="screen on" id="s-welcome">
+  <div class="hdr"><h1>Simulado BD I</h1><p class="sub">2ª Prova · Prof. José Wellington · CEUB 2026</p></div>
+  <div class="info-card">
+    <h3>Sobre este simulado</h3>
+    <ul>
+      <li>30 questões de múltipla escolha cobrindo toda a revisão</li>
+      <li>Tempo: 40 minutos (cronômetro visível)</li>
+      <li>Ao final, revisão completa com gabarito e explicações</li>
+      <li>Foco especial no conteúdo novo: Normalização e Dependências Funcionais</li>
+    </ul>
+  </div>
+  <div class="info-card">
+    <h3>Temas abordados</h3>
+    <ul>
+      <li>Fundamentos: dado, informação, conhecimento, modelo de dados</li>
+      <li>SGBD: DBA, transações, ACID, instância, esquema</li>
+      <li>Arquitetura 3 níveis: externo, conceitual, interno</li>
+      <li>DDL, DML, DCL — comandos SQL</li>
+      <li>MER: entidades, atributos, chaves, cardinalidade</li>
+      <li>🆕 Normalização: 1FN, 2FN, 3FN, FNBC, 4FN, 5FN</li>
+      <li>🆕 Dependências: funcional, parcial, transitiva, multifuncional, de junção</li>
+    </ul>
+  </div>
+  <div class="nav"><button class="btn btn-primary" onclick="startExam()">🚀 Iniciar simulado</button></div>
+</div>
+
+<!-- SIMULADO -->
+<div class="screen" id="s-exam">
+  <div class="timer" id="timer">50:00</div>
+  <div class="prog-row">
+    <div class="prog-bar"><div class="prog-fill" id="prog"></div></div>
+    <span class="prog-txt" id="prog-txt">1 / 30</span>
+  </div>
+  <div class="q-card" id="q-card"></div>
+  <div class="nav">
+    <button class="btn btn-ghost" id="btn-prev" onclick="go(-1)">◄ Anterior</button>
+    <button class="btn btn-primary" id="btn-next" onclick="go(1)">Próxima ►</button>
+    <button class="btn btn-primary" id="btn-fin" style="display:none;background:linear-gradient(135deg,var(--gr),var(--cy))" onclick="finish()">✓ Finalizar</button>
+  </div>
+</div>
+
+<!-- RESULTADO -->
+<div class="screen" id="s-result">
+  <div class="hdr"><h1>Simulado concluído!</h1></div>
+  <div style="background:var(--s);border:1.5px solid var(--bd);border-radius:16px;padding:32px;margin-bottom:24px;text-align:center">
+    <div class="score-big" id="score-pct">0%</div>
+    <div style="color:var(--t2);font-size:1.2rem" id="score-msg"></div>
+    <div class="res-grid">
+      <div class="res-stat"><span class="res-n" style="color:var(--gr)" id="r-ok">0</span><span style="color:var(--t2);font-size:.8rem;text-transform:uppercase;letter-spacing:.5px">Acertos</span></div>
+      <div class="res-stat"><span class="res-n" style="color:var(--re)" id="r-err">0</span><span style="color:var(--t2);font-size:.8rem;text-transform:uppercase;letter-spacing:.5px">Erros</span></div>
+      <div class="res-stat"><span class="res-n" style="color:var(--am)" id="r-time">--</span><span style="color:var(--t2);font-size:.8rem;text-transform:uppercase;letter-spacing:.5px">Tempo</span></div>
+    </div>
+  </div>
+  <h3 style="color:var(--cy);margin-bottom:16px;font-size:1.1rem">Revisão questão a questão</h3>
+  <div id="review-list"></div>
+  <div class="nav" style="margin-top:28px"><button class="btn btn-primary" onclick="restart()">↺ Refazer simulado</button></div>
+</div>
+
+<script>
+const Qs=[
+  {cat:'Fundamentos',q:'Qual a diferença entre dado e informação?',opts:['Dado é processado; informação é bruto','Dado é fato bruto sem contexto; informação é dado processado e com significado','São sinônimos no contexto de banco de dados','Dado é digital; informação é analógica'],ans:1,exp:'Dado = fato bruto, isolado, sem contexto. Informação = dado processado, contextualizado e interpretado.'},
+  {cat:'Fundamentos',q:'O que é conhecimento, no contexto de banco de dados?',opts:['Sinônimo de informação','Conjunto de dados brutos','Conjunto de informações que permitem tomada de decisões e resolução de problemas','Qualquer dado armazenado no banco'],ans:2,exp:'Conhecimento é o nível mais alto: informações organizadas que embasam decisões.'},
+  {cat:'Fundamentos',q:'Dado Persistente é:',opts:['Dado que nunca é alterado no banco','Dado armazenado por muito tempo no banco','Dado que se repete em múltiplas tabelas','Dado que nunca é excluído'],ans:1,exp:'Dados persistentes ficam armazenados por longo período (ex: registros de alunos, produtos).'},
+  {cat:'SGBD',q:'SGBD é um:',opts:['Modelo de dados relacional','Software responsável pelo gerenciamento dos dados no banco','Linguagem de consulta estruturada','Nível da arquitetura de três esquemas'],ans:1,exp:'SGBD = Sistema Gerenciador de Banco de Dados. Ex: MySQL, PostgreSQL, SQLite.'},
+  {cat:'SGBD',q:'Quais são as propriedades ACID de uma transação?',opts:['Autenticidade, Consistência, Integridade, Disponibilidade','Atomicidade, Consistência, Isolamento, Durabilidade','Atomicidade, Controle, Integridade, Durabilidade','Acesso, Consulta, Inserção, Deleção'],ans:1,exp:'ACID: Atomicidade (tudo ou nada), Consistência, Isolamento (transações independentes), Durabilidade (dados persistem).'},
+  {cat:'SGBD',q:'O que garante a Integridade Referencial?',opts:['Que não haja duplicatas na chave primária','Que chaves estrangeiras correspondam a chaves primárias em outra tabela','Que todos os atributos sejam preenchidos','Que o banco nunca perca dados'],ans:1,exp:'Integridade referencial = chave estrangeira sempre aponta para um registro válido na tabela referenciada.'},
+  {cat:'SGBD',q:'Qual a diferença entre Instância e Esquema?',opts:['São sinônimos','Instância é a estrutura do banco; esquema é os dados atuais','Instância são os dados em um momento específico; esquema é a estrutura do banco','Instância é para administradores; esquema é para usuários'],ans:2,exp:'Instância = dados concretos num momento (muda constantemente). Esquema = "projeto" da estrutura (muda raramente).'},
+  {cat:'Arquitetura',q:'No modelo de três esquemas, o nível que descreve como grupos de usuários enxergam o banco é:',opts:['Interno','Conceitual','Externo','Físico'],ans:2,exp:'Nível Externo (o mais alto) = visão personalizada de cada grupo de usuários, implementada por Visões.'},
+  {cat:'Arquitetura',q:'O nível que trata do armazenamento físico dos dados no hardware é o:',opts:['Externo','Conceitual','Interno','Lógico'],ans:2,exp:'Nível Interno (o mais baixo) = como os dados são fisicamente guardados no disco.'},
+  {cat:'Arquitetura',q:'Independência de dados FÍSICA significa:',opts:['Alterar aplicações sem mudar o banco','Alterar o armazenamento físico sem afetar o esquema conceitual','Alterar o esquema conceitual sem mudar as aplicações','Alterar dados sem afetar índices'],ans:1,exp:'Física: muda como guarda (disco, estrutura de arquivo) sem impactar o esquema lógico/conceitual.'},
+  {cat:'SQL',q:'Qual sublinguagem SQL é usada para criar e modificar a estrutura do banco?',opts:['DML','DCL','DDL','TCL'],ans:2,exp:'DDL (Data Definition Language): CREATE, ALTER, DROP, TRUNCATE — define a estrutura.'},
+  {cat:'SQL',q:'O comando SQL correto para consultar dados é:',opts:['INSERT','UPDATE','SELECT','CREATE'],ans:2,exp:'SELECT faz parte do DML (Data Manipulation Language) e é o comando de consulta.'},
+  {cat:'SQL',q:'GRANT e REVOKE pertencem a qual sublinguagem SQL?',opts:['DDL','DML','DCL','DQL'],ans:2,exp:'DCL (Data Control Language) controla permissões: GRANT concede, REVOKE revoga.'},
+  {cat:'SQL',q:'Qual comando DDL remove TODOS os registros de uma tabela mantendo sua estrutura?',opts:['DELETE','DROP','TRUNCATE','ALTER'],ans:2,exp:'TRUNCATE remove todos os registros mas mantém a tabela. DROP elimina a tabela inteira.'},
+  {cat:'MER',q:'O que diferencia uma Entidade Fraca de uma Entidade Forte?',opts:['Entidade fraca tem menos atributos','Entidade fraca não possui chave primária própria independente','Entidade fraca não pode ter relacionamentos','Entidade fraca é representada por círculo no diagrama'],ans:1,exp:'Entidade Fraca depende de outra entidade para ser identificada, pois não tem PK própria.'},
+  {cat:'MER',q:'A cardinalidade N:M entre Aluno e Disciplina significa:',opts:['Um aluno cursou uma disciplina','Um aluno pode cursar muitas disciplinas, mas cada disciplina tem apenas um aluno','Um aluno pode cursar muitas disciplinas E uma disciplina pode ter muitos alunos','Nenhuma das anteriores'],ans:2,exp:'N:M = muitos para muitos. Aluno ↔ Disciplina: vários alunos, várias disciplinas.'},
+  {cat:'MER',q:'Atributo derivado é:',opts:['Atributo calculado a partir de outros atributos','Atributo composto por sub-atributos','Atributo que aceita múltiplos valores','Atributo obrigatório na chave primária'],ans:0,exp:'Derivado = calculado e não precisa ser armazenado. Ex: Idade calculada a partir da Data de Nascimento.'},
+  {cat:'MER',q:'Chave Candidata é:',opts:['Sempre a mesma que a chave primária','Qualquer atributo da tabela','Atributo que poderia ser chave primária — pode haver várias','Chave criada para relacionar tabelas'],ans:2,exp:'Chave Candidata = qualquer atributo (ou conjunto) que identifica unicamente um registro. Uma delas é escolhida como PK.'},
+  // NORMALIZAÇÃO
+  {cat:'Normalização',q:'O objetivo da Normalização é:',opts:['Aumentar a velocidade de consulta','Minimizar redundâncias, eliminar anomalias e garantir integridade','Criar mais tabelas no banco','Simplificar a linguagem SQL'],ans:1,exp:'Normalização organiza o banco para evitar dados duplicados e anomalias de inserção, atualização e exclusão.'},
+  {cat:'Normalização',q:'Dependência Funcional X → Y significa:',opts:['X depende de Y para existir','Para cada valor de X existe exatamente um valor de Y','X e Y são sempre iguais','Y é a chave primária de X'],ans:1,exp:'X → Y: dado um valor de X, sempre existe um único valor correspondente de Y. Ex: CPF → Nome.'},
+  {cat:'Normalização',q:'A 1ª Forma Normal (1FN) exige:',opts:['Eliminação de dependências transitivas','Todos os atributos com valores atômicos e sem atributos multivalorados','Que a chave primária seja simples (um único atributo)','Eliminação de dependências parciais'],ans:1,exp:'1FN: valores indivisíveis (atômicos) e sem campos que guardam múltiplos valores ao mesmo tempo.'},
+  {cat:'Normalização',q:'A 2ª Forma Normal (2FN) elimina:',opts:['Dependências transitivas','Atributos multivalorados','Dependências funcionais parciais','Dependências de junção'],ans:2,exp:'2FN = 1FN + sem dependência parcial. Todo atributo não-chave deve depender da chave primária INTEIRA.'},
+  {cat:'Normalização',q:'Dependência Funcional PARCIAL ocorre quando:',opts:['Um atributo depende de outro atributo não-chave','Um atributo depende apenas de PARTE da chave primária composta','A tabela tem mais de uma chave candidata','O atributo não tem valor definido'],ans:1,exp:'Parcial: em chave composta, atributo depende só de parte dela, não da chave toda.'},
+  {cat:'Normalização',q:'A 3ª Forma Normal (3FN) elimina:',opts:['Dependências parciais','Atributos compostos','Dependências transitivas','Dependências multifuncionais'],ans:2,exp:'3FN = 2FN + sem dependências transitivas (atributo não-chave não pode depender de outro não-chave).'},
+  {cat:'Normalização',q:'Dependência Funcional TRANSITIVA ocorre quando:',opts:['Atributo depende de parte da chave','Atributo não-chave depende de outro atributo não-chave','Dois atributos têm o mesmo valor','A tabela tem chave composta'],ans:1,exp:'Transitiva: A → B → C. C depende de B (não-chave), que depende de A (chave). Ex: Funcionário → Departamento → GerenteDept.'},
+  {cat:'Normalização',q:'FNBC (Forma Normal de Boyce-Codd) exige que:',opts:['A tabela esteja na 2FN','Não existam dependências transitivas','Todo determinante seja chave candidata','A chave primária seja composta'],ans:2,exp:'FNBC é mais rigorosa que a 3FN: todo determinante (lado esquerdo de qualquer dependência funcional) deve ser chave candidata.'},
+  {cat:'Normalização',q:'A 4ª Forma Normal (4FN) trata de:',opts:['Dependências transitivas','Dependências parciais','Dependências multifuncionais','Dependências de junção'],ans:2,exp:'4FN = 3FN + sem dependências multifuncionais (associações N:M entre atributos em relacionamentos ternários).'},
+  {cat:'Normalização',q:'Dependência de Junção significa que:',opts:['A tabela pode ser dividida e reconstruída sem perda de informação','A tabela tem chave primária composta','Dois atributos dependem da mesma chave','A tabela possui atributos derivados'],ans:0,exp:'Dependência de Junção: tabela que pode ser decomposta em projeções e reconstruída pela junção sem perda nem ganho de dados.'},
+  {cat:'Normalização',q:'A 5ª Forma Normal (5FN) elimina:',opts:['Dependências transitivas','Dependências parciais','Dependências multifuncionais','Dependências de junção'],ans:3,exp:'5FN = 3FN + sem dependências de junção. É a forma normal mais restritiva.'},
+  {cat:'Normalização',q:'Qual é a sequência correta das Formas Normais?',opts:['2FN → 1FN → 3FN → FNBC → 5FN → 4FN','1FN → 2FN → 3FN → FNBC → 4FN → 5FN','1FN → 3FN → 2FN → 4FN → FNBC → 5FN','FNBC → 1FN → 2FN → 3FN → 4FN → 5FN'],ans:1,exp:'A sequência correta é 1FN → 2FN → 3FN → FNBC → 4FN → 5FN. Cada forma pressupõe todas as anteriores.'},
+];
+
+let cur=0,answers=[],timerInt,elapsed=0,limit=50*60,started=false;
+
+function startExam(){
+  document.getElementById('s-welcome').classList.remove('on');
+  document.getElementById('s-exam').classList.add('on');
+  started=true;
+  timerInt=setInterval(()=>{
+    elapsed++;
+    const rem=limit-elapsed;
+    if(rem<=0){clearInterval(timerInt);finish();return;}
+    const m=String(Math.floor(rem/60)).padStart(2,'0');
+    const s=String(rem%60).padStart(2,'0');
+    const t=document.getElementById('timer');
+    t.textContent=`${m}:${s}`;
+    if(rem<=300)t.classList.add('warn');
+  },1000);
+  renderQ();
+}
+
+function renderQ(){
+  const q=Qs[cur];
+  let opts='';
+  q.opts.forEach((o,i)=>{
+    const sel=answers[cur]===i;
+    const answered=answers[cur]!==undefined;
+    let optClass='';
+    if(answered){
+      if(i===q.ans) optClass=' ok';
+      else if(sel) optClass=' wrong';
+    }
+    const disabledAttr=answered?' style="pointer-events:none;opacity:0.8"':'';
+    opts+=`<div class="opt${sel?' sel':''}${optClass}"${disabledAttr} onclick="pick(${i})"><input type="radio" name="q" ${sel?'checked':''} ${answered?'disabled':''}><label>${o}</label></div>`;
+  });
+  document.getElementById('q-card').innerHTML=`
+    <span class="q-badge">${q.cat}</span>
+    <span class="q-num">Q${cur+1} / ${Qs.length}</span>
+    <div class="q-text">${q.q}</div>
+    <div class="opts">${opts}</div>`;
+  document.getElementById('prog').style.width=((cur+1)/Qs.length*100)+'%';
+  document.getElementById('prog-txt').textContent=`${cur+1} / ${Qs.length}`;
+  document.getElementById('btn-prev').disabled=cur===0;
+  document.getElementById('btn-next').style.display=cur<Qs.length-1?'block':'none';
+  document.getElementById('btn-fin').style.display=cur===Qs.length-1?'block':'none';
+}
+
+function pick(i){
+  if(answers[cur]===undefined){
+    answers[cur]=i;
+    renderQ();
+  }
+}
+function go(d){cur=Math.max(0,Math.min(Qs.length-1,cur+d));renderQ();}
+
+function finish(){
+  clearInterval(timerInt);
+  let ok=0;
+  Qs.forEach((q,i)=>{if(answers[i]===q.ans)ok++;});
+  const err=Qs.length-ok;
+  const pct=Math.round(ok/Qs.length*100);
+  document.getElementById('s-exam').classList.remove('on');
+  document.getElementById('s-result').classList.add('on');
+  document.getElementById('score-pct').textContent=pct+'%';
+  const msgs=['💪 Continue estudando! Você consegue!','📚 Bom trabalho! Revise alguns tópicos.','👏 Muito bom! Continue assim!','🏆 Excelente! Você está pronto para a prova!'];
+  document.getElementById('score-msg').textContent=msgs[pct>=90?3:pct>=70?2:pct>=50?1:0];
+  document.getElementById('r-ok').textContent=ok;
+  document.getElementById('r-err').textContent=err;
+  const m=Math.floor(elapsed/60),s=elapsed%60;
+  document.getElementById('r-time').textContent=`${m}:${String(s).padStart(2,'0')}`;
+  let rev='';
+  Qs.forEach((q,i)=>{
+    const isOk=answers[i]===q.ans;
+    const userChoice=answers[i];
+    let optsHtml='';
+    q.opts.forEach((o,j)=>{
+      const isUserChoice=j===userChoice;
+      const isCorrect=j===q.ans;
+      let optClass='';
+      if(isUserChoice && isOk) optClass='correct';
+      else if(isUserChoice && !isOk) optClass='wrong';
+      else if(!isUserChoice && isCorrect) optClass='correct';
+      optsHtml+=`<div class="rev-opt${optClass?` ${optClass}`:''}"><input type="radio" disabled${isUserChoice||isCorrect?' checked':''} disabled><label>${o}</label></div>`;
+    });
+    rev+=`<div class="rev-item${isOk?' ok':''}">
+      <span style="font-size:.75rem;font-weight:600;color:${isOk?'var(--gr)':'var(--re)'}">${isOk?'✓ CORRETO':'✗ INCORRETO'} &nbsp;|&nbsp; ${q.cat}</span>
+      <div style="font-weight:500;margin:8px 0;color:var(--t)">${q.q}</div>
+      <div class="rev-opts">${optsHtml}</div>
+      <div class="expl">💡 ${q.exp}</div>
+    </div>`;
+  });
+  document.getElementById('review-list').innerHTML=rev;
+}
+
+function restart(){
+  cur=0;answers=[];elapsed=0;
+  document.getElementById('s-result').classList.remove('on');
+  document.getElementById('s-welcome').classList.add('on');
+  document.getElementById('timer').classList.remove('warn');
+  document.getElementById('timer').textContent='40:00';
+}
+</script>
+</body>
+</html>
